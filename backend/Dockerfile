@@ -19,8 +19,8 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 
 COPY --from=builder /app/target/release/sentinel-backend /usr/local/bin/
 COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/.env ./.env
 
 EXPOSE 8080
 
 CMD ["sentinel-backend"]
+
