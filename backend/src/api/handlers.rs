@@ -43,20 +43,27 @@ pub async fn evaluate_action(
 
     // Async write to Audit Ledger (Fire and forget or await depending on strictness)
     let decision_clone = decision.clone();
+    let db = state.db.clone();
     tokio::spawn(async move {
-        // Insert into DB...
-        let _ = sqlx::query!(
+        // Insert into DB using runtime query (no compile-time macro requirement)
+        let _ = sqlx::query(
             "INSERT INTO decisions (id, agent_id, action_type, symbol, quantity, intent_passed, policy_passed, risk_score, anomaly_detected, final_decision, reason) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-            decision_clone.decision_id, decision_clone.agent_id, 
-            format!("{:?}", decision_clone.action.action_type), decision_clone.action.symbol, 
-            decision_clone.action.quantity, decision_clone.intent_matched, 
-            decision_clone.policy_passed, decision_clone.risk.score as i32, 
-            decision_clone.anomaly_detected, decision_clone.decision, 
-            decision_clone.reason
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
         )
-        .execute(&state.db)
-        .await;
+        .bind(decision_clone.decision_id)
+        .bind(decision_clone.agent_id)
+        .bind(format!("{:?}", decision_clone.action.action_type))
+        .bind(decision_clone.action.symbol)
+        .bind(decision_clone.action.quantity)
+        .bind(decision_clone.intent_matched)
+        .bind(decision_clone.policy_passed)
+        .bind(decision_clone.risk.score as i32)
+        .bind(decision_clone.anomaly_detected)
+        .bind(decision_clone.decision)
+        .bind(decision_clone.reason)
+        .execute(&db)
+        .await
+        .ok();
     });
 
     // If APPROVED -> Execute on Binance here via `src/services/binance.rs`
@@ -95,3 +102,4 @@ pub async fn get_dashboard(State(state): State<AppState>) -> Json<Value> {
         ]
     }))
 }
+

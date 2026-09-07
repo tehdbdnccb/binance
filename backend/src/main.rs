@@ -51,7 +51,6 @@ async fn main() {
         .allow_headers(Any);
 
     let app = Router::new()
-      let app = Router::new()
     .route("/mcp", post(mcp::router::handle_mcp_request))  // Standard MCP JSON-RPC endpoint
     .route("/api/dashboard", get(api::handlers::get_dashboard))
     .route("/api/decisions", get(api::rest::get_decisions))
@@ -68,3 +67,4 @@ async fn main() {
     
     axum::serve(listener, app).await.unwrap();
 }
+
